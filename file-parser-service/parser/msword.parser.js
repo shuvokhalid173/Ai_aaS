@@ -1,9 +1,11 @@
-const ParserStrategy = require('./parser');
+const ParserStrategy = require("./parser");
+const mammoth = require("mammoth");
 
 class MSWordParser extends ParserStrategy {
-  parse(file) {
-    // Implement MS Word parsing logic here
-    return `Parsing MS Word file: ${file.name}`;
+  async parse(buffer) {
+    const result = await mammoth.extractRawText({ buffer });
+
+    return result.value;
   }
 }
 
