@@ -1,5 +1,5 @@
 {
-  "name": "file-parser-service",
+  "name": "web-crawling-service",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -10,8 +10,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "mammoth": "^1.11.0",
-    "pdf-parse": "^2.4.5",
-    "tesseract.js": "^7.0.0"
+    "axios": "^1.13.3",
+    "cheerio": "^1.2.0",
+    "express": "^5.2.1"
   }
 }
