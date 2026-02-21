@@ -1,0 +1,22 @@
+// authentication routes
+console.log('Loading auth routes...');
+const express = require('express');
+const router = express.Router();
+const authController = require('../controllers/auth.controller');
+
+// auth test route
+router.get('/auth/test', (req, res) => {
+    res.status(200).json({ message: 'Auth route is working!' });
+});
+// Register route
+router.post('/auth/register', authController.register);
+// Login route
+router.post('/auth/login', authController.login);
+// Update user auth status route
+router.post('/auth/update-user-status', authController.updateUserAuthStatus);
+// Refresh token route
+router.post('/auth/refresh', authController.refresh);
+// Logout route
+router.post('/auth/logout', authController.logout);
+
+module.exports = router;
