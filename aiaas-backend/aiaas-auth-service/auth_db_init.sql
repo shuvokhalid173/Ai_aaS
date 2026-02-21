@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.2
 -- https://www.phpmyadmin.net/
 --
--- Host: mysql-container:3306
--- Generation Time: Feb 17, 2026 at 03:32 PM
--- Server version: 9.1.0
--- PHP Version: 8.2.8
+-- Host: db:3306
+-- Generation Time: Feb 21, 2026 at 07:27 PM
+-- Server version: 8.0.41
+-- PHP Version: 8.2.27
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -103,6 +103,7 @@ CREATE TABLE `auth_permissions` (
   `aiaas_service_id` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `description` text,
+  `resource_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -169,7 +170,7 @@ CREATE TABLE `auth_sessions` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `expires_at` timestamp NOT NULL,
   `revoked_at` timestamp NULL DEFAULT NULL
-) ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -188,6 +189,19 @@ CREATE TABLE `auth_users` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `deleted_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `auth_user_roles`
+--
+
+CREATE TABLE `auth_user_roles` (
+  `id` char(36) NOT NULL,
+  `auth_user_id` char(36) NOT NULL,
+  `auth_role_id` char(36) NOT NULL,
+  `auth_org_id` char(36) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -241,7 +255,8 @@ ALTER TABLE `auth_orgs_users`
 --
 ALTER TABLE `auth_permissions`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_aiaas_service_id` (`aiaas_service_id`);
+  ADD KEY `idx_aiaas_service_id` (`aiaas_service_id`),
+  ADD KEY `idx_perm_service_name` (`aiaas_service_id`,`name`);
 
 --
 -- Indexes for table `auth_refresh_tokens`
@@ -262,6 +277,7 @@ ALTER TABLE `auth_refresh_tokens`
 --
 ALTER TABLE `auth_roles`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_org_role` (`auth_orgs_id`,`name`),
   ADD KEY `idx_auth_orgs_id` (`auth_orgs_id`);
 
 --
@@ -269,6 +285,7 @@ ALTER TABLE `auth_roles`
 --
 ALTER TABLE `auth_roles_permissions`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_role_permission` (`auth_permissions_id`,`auth_roles_id`),
   ADD KEY `idx_auth_roles_id` (`auth_roles_id`),
   ADD KEY `idx_aiaas_service_permissions_id` (`auth_permissions_id`);
 
@@ -290,6 +307,15 @@ ALTER TABLE `auth_users`
   ADD KEY `idx_phone` (`phone`),
   ADD KEY `idx_status` (`status`),
   ADD KEY `idx_deleted_at` (`deleted_at`);
+
+--
+-- Indexes for table `auth_user_roles`
+--
+ALTER TABLE `auth_user_roles`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_user_role_org` (`auth_user_id`,`auth_role_id`,`auth_org_id`),
+  ADD KEY `auth_role_id` (`auth_role_id`),
+  ADD KEY `auth_org_id` (`auth_org_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -330,7 +356,7 @@ ALTER TABLE `auth_orgs_users`
 --
 ALTER TABLE `auth_permissions`
   ADD CONSTRAINT `fk_aiaas_service_permissions_aiaas_service_id` FOREIGN KEY (`aiaas_service_id`) REFERENCES `aiaas_services` (`id`) ON DELETE CASCADE;
-  
+
 --
 -- Constraints for table `auth_refresh_tokens`
 --
@@ -355,6 +381,14 @@ ALTER TABLE `auth_roles_permissions`
 --
 ALTER TABLE `auth_sessions`
   ADD CONSTRAINT `fk_auth_sessions_user_id` FOREIGN KEY (`user_id`) REFERENCES `auth_users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `auth_user_roles`
+--
+ALTER TABLE `auth_user_roles`
+  ADD CONSTRAINT `auth_user_roles_ibfk_1` FOREIGN KEY (`auth_user_id`) REFERENCES `auth_users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `auth_user_roles_ibfk_2` FOREIGN KEY (`auth_role_id`) REFERENCES `auth_roles` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `auth_user_roles_ibfk_3` FOREIGN KEY (`auth_org_id`) REFERENCES `auth_orgs` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
